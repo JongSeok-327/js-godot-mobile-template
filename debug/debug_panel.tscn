@@ -1,0 +1,58 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://debug/debug_panel.gd" id="1_debug_panel"]
+
+[node name="DebugPanel" type="CanvasLayer"]
+layer = 200
+script = ExtResource("1_debug_panel")
+
+[node name="Anchor" type="VBoxContainer" parent="."]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = -16.0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Body" type="PanelContainer" parent="Anchor"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(440, 0)
+layout_mode = 2
+
+[node name="Rows" type="VBoxContainer" parent="Anchor/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Stats" type="Label" parent="Anchor/Body/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="SceneButtons" type="HBoxContainer" parent="Anchor/Body/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="LocaleButton" type="Button" parent="Anchor/Body/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="WipeButton" type="Button" parent="Anchor/Body/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "세이브 초기화"
+
+[node name="CheatButtons" type="VBoxContainer" parent="Anchor/Body/Rows"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ToggleButton" type="Button" parent="Anchor"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+text = "DBG"
