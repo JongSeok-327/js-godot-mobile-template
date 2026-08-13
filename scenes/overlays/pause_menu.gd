@@ -12,6 +12,7 @@ signal main_menu_requested
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	%ResumeButton.pressed.connect(resume_requested.emit)
+	%SettingsButton.pressed.connect(settings_requested.emit)
 	%MainMenuButton.pressed.connect(main_menu_requested.emit)
 
 

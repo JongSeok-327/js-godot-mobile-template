@@ -40,6 +40,12 @@ custom_minimum_size = Vector2(400, 0)
 layout_mode = 2
 text = "PAUSE_RESUME"
 
+[node name="SettingsButton" type="Button" parent="Center/Panel/Menu"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+text = "PAUSE_SETTINGS"
+
 [node name="MainMenuButton" type="Button" parent="Center/Panel/Menu"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(400, 0)

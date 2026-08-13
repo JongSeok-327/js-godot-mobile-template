@@ -5,10 +5,12 @@ extends Control
 ## HUD, 일시정지, 안드로이드 생명주기뿐이다.
 
 const PauseMenuScene := preload("res://scenes/overlays/pause_menu.tscn")
+const SettingsMenuScene := preload("res://scenes/overlays/settings_menu.tscn")
 
 @onready var _pause_button: Button = %PauseButton
 
 var _pause_menu: CanvasLayer
+var _settings_menu: CanvasLayer
 
 
 func _ready() -> void:
@@ -17,6 +19,7 @@ func _ready() -> void:
 	_pause_menu = PauseMenuScene.instantiate()
 	_pause_menu.visible = false
 	_pause_menu.resume_requested.connect(set_paused.bind(false))
+	_pause_menu.settings_requested.connect(_on_settings_requested)
 	_pause_menu.main_menu_requested.connect(_on_main_menu_requested)
 	add_child(_pause_menu)
 
@@ -25,7 +28,9 @@ func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_WM_GO_BACK_REQUEST:
 			# 안드로이드 뒤로가기 — 게임 중에는 일시정지 토글.
-			toggle_pause()
+			# 설정이 떠 있으면 설정이 자기 자신을 닫는다.
+			if _settings_menu == null:
+				toggle_pause()
 		NOTIFICATION_APPLICATION_PAUSED:
 			# 백그라운드로 넘어가면 안드로이드는 언제든 프로세스를 죽일 수 있다.
 			# 멈추고 저장부터 한다.
@@ -47,6 +52,18 @@ func set_paused(paused: bool) -> void:
 		_pause_menu.focus_default()
 
 	EventBus.game_paused.emit(paused)
+
+
+func _on_settings_requested() -> void:
+	_settings_menu = SettingsMenuScene.instantiate()
+	_settings_menu.closed.connect(_on_settings_closed)
+	add_child(_settings_menu)
+
+
+func _on_settings_closed() -> void:
+	_settings_menu.queue_free()
+	_settings_menu = null
+	_pause_menu.focus_default()
 
 
 func _on_main_menu_requested() -> void:
