@@ -48,6 +48,11 @@ GODOT=/Applications/Godot_4.7.1.app/Contents/MacOS/Godot
   게임 코드는 `Services.ads` / `Services.iap`만 본다.
 - 디버그 전용 리소스는 `debug/`에 두고 `preload`가 아닌 `load`로 가져온다
   (릴리스 preset에서 `debug/*`를 제외할 수 있어야 하므로).
+- **UI 테마는 의도적으로 코드 정의다** (`ui/theme/default_theme.tres`의 StyleBoxFlat).
+  게임을 얹을 때 여기서 색·모서리만 바꾸면 리스타일된다 — 스프라이트로 갈아끼우면
+  그때마다 아트를 새로 그려야 한다. Kenney 에셋은 슬라이더 그래버와 클릭음에만 썼다
+  (엔진 기본 아이콘/무음을 없애려는 목적). CJK 폰트는 번들이 필수다 — 시스템 폰트에
+  맡기면 기기마다 자형이 달라진다.
 
 ## 디렉토리
 

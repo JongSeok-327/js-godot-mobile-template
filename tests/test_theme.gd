@@ -30,6 +30,18 @@ func run(t: Node) -> void:
 	t.check(theme.has_stylebox("panel", "PanelContainer"), "PanelContainer 패널 스타일 존재")
 	t.check(theme.has_stylebox("slider", "HSlider"), "HSlider 트랙 스타일 존재")
 
+	# 그래버는 지정하지 않으면 엔진 내장 아이콘으로 그려진다 — 엔진 버전에 따라
+	# 모양이 바뀌는 부분이라, 프로젝트 리소스를 가리키는지 못 박아 둔다.
+	for icon_name in ["grabber", "grabber_highlight"]:
+		var has_icon := theme.has_icon(icon_name, "HSlider")
+		t.check(has_icon, "HSlider '%s' 아이콘 존재" % icon_name)
+		var icon: Texture2D = theme.get_icon(icon_name, "HSlider") if has_icon else null
+		t.check(
+			icon != null and icon.resource_path.begins_with("res://assets/"),
+			"HSlider '%s' 아이콘이 프로젝트 리소스다 (%s)"
+				% [icon_name, "없음" if icon == null else icon.resource_path]
+		)
+
 	# 터치 타겟: 버튼 상하 여백만으로도 손가락이 누를 만한 높이가 나와야 한다.
 	var normal := theme.get_stylebox("normal", "Button")
 	var min_height := normal.content_margin_top + normal.content_margin_bottom

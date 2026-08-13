@@ -1,7 +1,8 @@
-[gd_resource type="Theme" load_steps=12 format=3]
+[gd_resource type="Theme" load_steps=13 format=3]
 
 [ext_resource type="FontFile" path="res://assets/fonts/noto_sans_jp_regular.otf" id="1_font_jp"]
 [ext_resource type="FontFile" path="res://assets/fonts/noto_sans_kr_regular.otf" id="2_font_kr"]
+[ext_resource type="Texture2D" path="res://assets/ui/slider_grabber.png" id="3_grabber"]
 
 [sub_resource type="FontVariation" id="FontVariation_default"]
 base_font = ExtResource("1_font_jp")
@@ -109,6 +110,8 @@ Button/styles/focus = SubResource("StyleBoxFlat_btn_focus")
 Button/styles/hover = SubResource("StyleBoxFlat_btn_hover")
 Button/styles/normal = SubResource("StyleBoxFlat_btn_normal")
 Button/styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+HSlider/icons/grabber = ExtResource("3_grabber")
+HSlider/icons/grabber_highlight = ExtResource("3_grabber")
 HSlider/styles/grabber_area = SubResource("StyleBoxFlat_slider_fill")
 HSlider/styles/grabber_area_highlight = SubResource("StyleBoxFlat_slider_fill")
 HSlider/styles/slider = SubResource("StyleBoxFlat_slider_track")
