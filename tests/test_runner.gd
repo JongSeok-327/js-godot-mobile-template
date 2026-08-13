@@ -10,6 +10,7 @@ extends Node
 const TESTS: Array[Script] = [
 	preload("res://tests/test_save_manager.gd"),
 	preload("res://tests/test_settings.gd"),
+	preload("res://tests/test_audio_manager.gd"),
 ]
 
 var _passed := 0
@@ -17,6 +18,10 @@ var _failed := 0
 
 
 func _ready() -> void:
+	# root가 자식을 세팅하는 동안에는 add_child()가 거부된다.
+	# 트리에 노드를 붙여 검사하는 테스트를 위해 한 프레임 넘긴 뒤 시작한다.
+	await get_tree().process_frame
+
 	for script in TESTS:
 		var suite: RefCounted = script.new()
 		print("── %s" % script.resource_path.get_file())
