@@ -1,0 +1,19 @@
+key,en,ko,ja
+MENU_TITLE,Mobile Game,모바일 게임,モバイルゲーム
+MENU_PLAY,Play,시작,プレイ
+MENU_SETTINGS,Settings,설정,設定
+MENU_QUIT,Quit,종료,終了
+PAUSE_TITLE,Paused,일시정지,一時停止
+PAUSE_RESUME,Resume,계속하기,再開
+PAUSE_SETTINGS,Settings,설정,設定
+PAUSE_MAIN_MENU,Main Menu,메인 메뉴,メインメニュー
+SETTINGS_TITLE,Settings,설정,設定
+SETTINGS_MASTER,Master,전체,全体
+SETTINGS_MUSIC,Music,음악,音楽
+SETTINGS_SFX,SFX,효과음,効果音
+SETTINGS_LANGUAGE,Language,언어,言語
+SETTINGS_CLOSE,Close,닫기,閉じる
+GAME_OVER_TITLE,Game Over,게임 오버,ゲームオーバー
+GAME_OVER_RETRY,Retry,다시 하기,リトライ
+GAME_OVER_MAIN_MENU,Main Menu,메인 메뉴,メインメニュー
+HUD_PAUSE,Pause,일시정지,一時停止
