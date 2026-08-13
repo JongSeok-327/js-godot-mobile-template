@@ -20,15 +20,23 @@ Godot 4.7.1 / GDScript로 만드는 **재사용 가능한 2D 세로 모바일 �
 ```bash
 GODOT=/Applications/Godot_4.7.1.app/Contents/MacOS/Godot
 
+# 최초 클론 후 1회 — 임포트 산출물 생성 (필수)
+"$GODOT" --headless --path . --import
+
 # 스모크 테스트 — 매 커밋 전 필수 (파스 에러/깨진 autoload/누락 리소스 검출)
 "$GODOT" --headless --path . --quit
 
 # 에디터에서 실행
 "$GODOT" --path . --editor
 
-# 단위 테스트 (SceneTree 기반, Phase 2부터)
+# 단위 테스트
 ./tests/run_all.sh
 ```
+
+> `.godot/`과 `locale/*.translation`은 저장소에 없다 — 둘 다 임포트로 생성되는
+> 산출물이다. 새로 클론했다면 `--import`를 먼저 돌려야 번역이 로드되고
+> 스모크 테스트가 통과한다. 반대로 스크립트의 `.uid` 파일은 커밋한다
+> (머신마다 새로 생성되면 `uid://` 참조가 깨진다).
 
 ## 코드 규약
 
