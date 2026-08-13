@@ -19,6 +19,7 @@ boot_splash/bg_color=Color(0.08, 0.08, 0.1, 1)
 [autoload]
 
 EventBus="*res://autoload/event_bus.gd"
+SaveManager="*res://autoload/save_manager.gd"
 
 [display]
 
