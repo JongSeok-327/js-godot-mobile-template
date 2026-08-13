@@ -26,6 +26,7 @@ EventBus="*res://autoload/event_bus.gd"
 SaveManager="*res://autoload/save_manager.gd"
 Settings="*res://autoload/settings.gd"
 AudioManager="*res://autoload/audio_manager.gd"
+SceneManager="*res://autoload/scene_manager.tscn"
 
 [display]
 
