@@ -14,3 +14,6 @@ export_presets.cfg.local
 
 # macOS
 .DS_Store
+
+# Claude Code 머신 로컬 설정 (권한 허용 목록 등)
+.claude/settings.local.json
