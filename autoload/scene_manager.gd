@@ -11,6 +11,7 @@ extends CanvasLayer
 const SCENES := {
 	"boot": "res://scenes/boot/boot.tscn",
 	"main_menu": "res://scenes/main_menu/main_menu.tscn",
+	"game": "res://scenes/game/game.tscn",
 }
 
 const FADE_TIME := 0.3
