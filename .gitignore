@@ -1,0 +1,16 @@
+# Godot 4+ 에디터가 생성하는 임포트 캐시
+.godot/
+
+# 빌드 산출물
+build/
+*.apk
+*.aab
+*.aar
+*.ipa
+
+# Godot 에디터 로컬 설정
+export_presets.cfg.local
+*.translation
+
+# macOS
+.DS_Store

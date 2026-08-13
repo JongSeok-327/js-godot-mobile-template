@@ -1,0 +1,9 @@
+# Godot 텍스트 리소스는 LF로 정규화
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ogg binary
+*.wav binary
+*.ttf binary
+*.otf binary
