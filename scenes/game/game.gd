@@ -2,15 +2,17 @@ extends Control
 ## 게임 셸.
 ##
 ## 실제 게임플레이는 Gameplay 노드 아래에 얹는다. 이 스크립트가 책임지는 것은
-## HUD, 일시정지, 안드로이드 생명주기뿐이다.
+## HUD, 일시정지, 게임 오버, 안드로이드 생명주기뿐이다.
 
 const PauseMenuScene := preload("res://scenes/overlays/pause_menu.tscn")
 const SettingsMenuScene := preload("res://scenes/overlays/settings_menu.tscn")
+const GameOverScene := preload("res://scenes/overlays/game_over.tscn")
 
 @onready var _pause_button: Button = %PauseButton
 
 var _pause_menu: CanvasLayer
 var _settings_menu: CanvasLayer
+var _game_over_menu: CanvasLayer
 
 
 func _ready() -> void:
@@ -23,18 +25,22 @@ func _ready() -> void:
 	_pause_menu.main_menu_requested.connect(_on_main_menu_requested)
 	add_child(_pause_menu)
 
+	EventBus.game_over.connect(_on_game_over)
+
 
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_WM_GO_BACK_REQUEST:
 			# 안드로이드 뒤로가기 — 게임 중에는 일시정지 토글.
 			# 설정이 떠 있으면 설정이 자기 자신을 닫는다.
-			if _settings_menu == null:
+			# 게임 오버 중에는 뒤로가기로 빠져나갈 수 없다.
+			if _settings_menu == null and _game_over_menu == null:
 				toggle_pause()
 		NOTIFICATION_APPLICATION_PAUSED:
 			# 백그라운드로 넘어가면 안드로이드는 언제든 프로세스를 죽일 수 있다.
 			# 멈추고 저장부터 한다.
-			set_paused(true)
+			if _game_over_menu == null:
+				set_paused(true)
 			SaveManager.save_game()
 
 
@@ -66,6 +72,25 @@ func _on_settings_closed() -> void:
 	_pause_menu.focus_default()
 
 
-func _on_main_menu_requested() -> void:
+## EventBus.game_over로 들어온다 — 게임플레이 쪽에서 발신한다.
+func _on_game_over() -> void:
+	if _game_over_menu != null:
+		return
+
+	# 일시정지 메뉴는 띄우지 않고 트리만 멈춘다.
+	get_tree().paused = true
+	_pause_button.disabled = true
+
+	_game_over_menu = GameOverScene.instantiate()
+	_game_over_menu.retry_requested.connect(_on_retry_requested)
+	_game_over_menu.main_menu_requested.connect(_on_main_menu_requested)
+	add_child(_game_over_menu)
+
+
+func _on_retry_requested() -> void:
 	# paused 해제는 SceneManager가 전환 직전에 강제로 처리한다.
+	SceneManager.reload_current()
+
+
+func _on_main_menu_requested() -> void:
 	SceneManager.change_scene("main_menu")
