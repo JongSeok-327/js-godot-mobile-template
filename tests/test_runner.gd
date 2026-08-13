@@ -14,6 +14,7 @@ const TESTS: Array[Script] = [
 	preload("res://tests/test_scene_manager.gd"),
 	preload("res://tests/test_theme.gd"),
 	preload("res://tests/test_object_pool.gd"),
+	preload("res://tests/test_services.gd"),
 ]
 
 var _passed := 0
@@ -28,7 +29,9 @@ func _ready() -> void:
 	for script in TESTS:
 		var suite: RefCounted = script.new()
 		print("── %s" % script.resource_path.get_file())
-		suite.run(self)
+		# await를 붙여야 프레임을 넘기며 도는 테스트(signal 대기 등)를 끝까지 기다린다.
+		# 동기 테스트는 값이 즉시 돌아오므로 그대로 통과한다.
+		await suite.run(self)
 
 	print("\n통과 %d / 실패 %d" % [_passed, _failed])
 	get_tree().quit(1 if _failed > 0 else 0)
