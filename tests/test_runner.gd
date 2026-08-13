@@ -13,6 +13,7 @@ const TESTS: Array[Script] = [
 	preload("res://tests/test_audio_manager.gd"),
 	preload("res://tests/test_scene_manager.gd"),
 	preload("res://tests/test_theme.gd"),
+	preload("res://tests/test_object_pool.gd"),
 ]
 
 var _passed := 0
