@@ -16,6 +16,10 @@ run/main_scene="res://scenes/boot/boot.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 boot_splash/bg_color=Color(0.08, 0.08, 0.1, 1)
 
+[autoload]
+
+EventBus="*res://autoload/event_bus.gd"
+
 [display]
 
 window/size/viewport_width=720
