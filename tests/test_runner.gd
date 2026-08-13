@@ -9,6 +9,7 @@ extends Node
 
 const TESTS: Array[Script] = [
 	preload("res://tests/test_save_manager.gd"),
+	preload("res://tests/test_settings.gd"),
 ]
 
 var _passed := 0
