@@ -10,6 +10,7 @@ extends CanvasLayer
 ## 씬 ID → 경로. 새 씬을 추가하면 여기에 등록한다.
 const SCENES := {
 	"boot": "res://scenes/boot/boot.tscn",
+	"main_menu": "res://scenes/main_menu/main_menu.tscn",
 }
 
 const FADE_TIME := 0.3
