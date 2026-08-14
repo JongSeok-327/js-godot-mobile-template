@@ -13,8 +13,9 @@ config_version=5
 config/name="MobileGame Template"
 config/version="0.1.0"
 run/main_scene="res://scenes/boot/boot.tscn"
-config/features=PackedStringArray("4.7", "GL Compatibility")
 config/quit_on_go_back=false
+config/icon="res://icon.svg"
+config/features=PackedStringArray("4.7", "GL Compatibility")
 boot_splash/bg_color=Color(0.08, 0.08, 0.1, 1)
 
 [audio]
@@ -39,7 +40,6 @@ window/size/viewport_height=1280
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=1
-window/energy_saving/keep_screen_on=true
 
 [gui]
 
@@ -51,7 +51,6 @@ pointing/emulate_touch_from_mouse=true
 
 [internationalization]
 
-locale/fallback="en"
 locale/translations=PackedStringArray("res://locale/translations.en.translation", "res://locale/translations.ko.translation", "res://locale/translations.ja.translation")
 
 [rendering]
