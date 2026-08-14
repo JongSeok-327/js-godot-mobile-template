@@ -1,183 +1,93 @@
-# JS Godot Mobile Game Template
+# js-godot-mobile-template
 
 [한국어](README.md) · **English** · [日本語](README.ja.md)
 
-A Godot project where **everything except the game itself is already built**, so you can
-just drop your game in.
+A 2D portrait mobile game template built with Godot 4.7.1. It contains no game content —
+only the common parts you end up rewriting for every game.
 
----
+## What's in it
 
-## Why would you want this?
+Parts that stay alive the whole time the game is running and can be called from any
+screen. Godot calls these autoloads.
 
-Making a game means building a lot of things that aren't the game.
+- **SaveManager** — Saves progress to `user://save.json` and reads it back. It includes
+  machinery that migrates old files to the new format if you change the save format later.
+- **Settings** — Volume and language. Kept in a separate file from your save, so wiping
+  progress leaves settings intact.
+- **AudioManager** — Music crossfades instead of cutting off, and up to 8 sound effects
+  play at once. Audio keeps running while the game is paused.
+- **SceneManager** — Screen transitions, fading through black. Screens are called by name
+  like `"main_menu"` rather than by file path.
+- **Services** — The slot where ads and purchases go. By default a stub is plugged in that
+  does nothing and just reports success. That lets you click through reward payouts before
+  attaching Google's SDK, and when you attach the real thing, game code doesn't change.
+- **EventBus** — A collection of global signals. No logic lives here.
+- **DebugTools** — The `DBG` button in the bottom-left: frame rate, jump to any screen,
+  cycle languages, wipe save data. It's dropped entirely from release builds.
 
-- The title screen and its buttons
-- A settings menu for adjusting volume
-- Saving your progress and loading it back
-- Pausing mid-game
-- Switching between Korean / English / Japanese
-- Screens that fade smoothly instead of snapping
+Screens run boot → main_menu → game, with pause, settings, and game over layered on top.
 
-The catch is that **these are nearly identical in every game you make**. Rebuilding them
-from scratch each time is wasted effort.
+Also included:
 
-Think of building a house: this project is **an empty house with the frame up and the
-wiring and plumbing already run**. All that's left is picking wallpaper and moving in
-furniture — that is, the actual game.
+- TouchController — tells tap, long press, drag, and swipe apart
+- ObjectPool — reuses objects that appear and disappear constantly, like bullets
+- Translations in ko / en / ja, switching instantly without a restart
+- Noto Sans KR/JP fonts, because leaving it to system fonts means different letterforms on
+  every device
+- Android back button pauses during gameplay and quits from the menu
+- Leaving via the home button saves automatically, since Android kills backgrounded apps
+  whenever it likes
 
-## Current state
+## What's not in it
 
-- **The game itself is empty.** That's the part you fill in.
-- Everything listed above is built and working.
-- It's been installed and launched on Android to confirm it really runs.
-- 121 automated checks pass.
+Game logic. The `Gameplay` node in `scenes/game/game.tscn` is the empty slot.
 
----
+## Running it
 
-## What's inside?
-
-### Parts that are always running
-
-These stay alive from the moment the game starts until it closes, and any screen can call
-on them. (Godot calls these **autoloads**.)
-
-| Name | What it does |
-|---|---|
-| **SaveManager** | Saves your progress to a file and loads it back. It includes machinery that **converts old save files to the new format automatically** if the format ever changes. |
-| **Settings** | Remembers volume and language. Kept in a **separate** file from your save data, so wiping your progress doesn't reset your settings. |
-| **AudioManager** | Handles music and sound effects. When music changes, tracks overlap and fade rather than cutting off. Music keeps playing while the game is paused. |
-| **SceneManager** | Handles screen changes — the screen darkens and brightens as it moves. |
-| **Services** | A **placeholder** for ads and purchases. More on this below. |
-| **EventBus** | A channel for parts to send news to each other. More on this below. |
-| **DebugTools** | A developer panel that only appears while developing. More on this below. |
-
-### Screens
-
-Splash → main menu → game screen are already wired together, along with the panels that
-appear on top of them (pause, settings, game over).
-
-### Everything else
-
-- **Touch input** — distinguishes tap, long press, drag, and swipe for you.
-- **Korean / English / Japanese** — switching in settings takes effect immediately, no restart.
-- **CJK fonts bundled** — without shipping the fonts, letters look different on every device.
-- **ObjectPool** — **recycles** objects that appear and disappear constantly, like bullets, instead of throwing them away. Constantly creating new ones makes the game stutter.
-- **Android back button** — pauses during gameplay, quits from the menu.
-- **When you leave via the home button** — it pauses and saves automatically. Android can kill a backgrounded app at any moment, so anything not saved on the way out is lost.
-
----
-
-## A few concepts explained
-
-### EventBus — parts talking to each other
-
-Say several parts need to know that the game is over. If you make them call each other
-directly, they get tangled like a spiderweb, and later a single change breaks things
-everywhere.
-
-So there's a **bulletin board**. Anything worth announcing gets posted, and whoever cares
-subscribes. Neither side needs to know the other exists.
-
-### Services — a fake version of ads and purchases
-
-Ads and in-app purchases only work for real once you attach separate software from Google.
-That's fiddly to set up, and until you do, you can't test any of it.
-
-So there's a **fake version that does nothing and simply reports success**. Press "watch an
-ad for a reward" and the reward arrives immediately, no ad. That lets you test the whole
-game flow start to finish before real ads exist.
-
-When you do attach real ads later, **you won't change a single line of game code** — you
-swap the fake for the real one.
-
-### DebugTools — the developer panel
-
-Press the `DBG` button in the bottom-left corner. You get a frame rate readout, jump-to-any-screen,
-language switching, and a button to wipe save data.
-
-**This panel is removed entirely from release builds.** That removal has been verified.
-
----
-
-## Getting started
-
-### 1. Install Godot
-
-Get version **4.7.1** from [godotengine.org](https://godotengine.org). Other versions may
-not work.
-
-### 2. Clone
+Godot 4.7.1 is required. Other versions may not open it.
 
 ```bash
 git clone https://github.com/JongSeok-327/js-godot-mobile-template.git
 cd js-godot-mobile-template
+
+godot --headless --path . --import   # once, the first time
+godot --path .
 ```
 
-### 3. First-time setup (once, and it's required)
+`--import` converts fonts and translations into the form Godot uses. The output is large
+and can be regenerated any time, so it isn't stored in the repository. Opening the project
+in the editor does this for you.
 
-```bash
-GODOT=/Applications/Godot_4.7.1.app/Contents/MacOS/Godot   # your install path
+## Building on it
 
-"$GODOT" --headless --path . --import
-```
+- Put your game under `Gameplay` in `scenes/game/game.tscn`.
+- Register any new screen in `SCENES` in `autoload/scene_manager.gd`. Writing file paths
+  throughout your code means hunting down every one when you move a file.
+- Add text as a row in `locale/translations.csv`. All three languages go on the same row.
+- Colors and corner rounding live in `ui/theme/default_theme.tres`; change them there and
+  everything follows.
+- Before release, change the app ID (`com.jsgame.template`) and `icon.svg`. The app ID
+  can't be changed once it's published to a store.
 
-**Why?** Files like fonts and translations have to be converted once into a form Godot can
-use. Those converted files are large and can be regenerated any time, so they aren't stored
-in the repository. You generate them yourself after cloning.
-
-Opening the project in the editor does this automatically too.
-
-### 4. Run
-
-```bash
-"$GODOT" --path .            # run the game
-"$GODOT" --path . --editor   # open the editor
-./tests/run_all.sh           # run the checks
-```
-
----
-
-## Building your own game on it
-
-1. **Add your gameplay.** Open `scenes/game/game.tscn` and you'll find an empty
-   `Gameplay` slot. Build under it.
-2. **If you add a new screen,** register its name in the `SCENES` list in
-   `autoload/scene_manager.gd`. Don't write screen file paths directly throughout your code —
-   move a file later and you'll have to hunt down every one.
-3. **To add text,** add a row to `locale/translations.csv`. All three languages go on the
-   same row.
-4. **To restyle,** change the colors and corner rounding in `ui/theme/default_theme.tres`
-   and the whole app follows.
-5. **Before release,** change the app ID (`com.jsgame.template`) and the icon (`icon.svg`).
-   ⚠️ The app ID **can never be changed once published to a store.**
-
----
-
-## Folder layout
+## Layout
 
 ```
 autoload/   parts that are always running
-scenes/     screens (splash, menu, game, overlay panels)
-ui/         design theme, reusable pieces
-scripts/    ad/purchase placeholders, touch input, utilities
+scenes/     screens and overlays
+ui/         theme, reusable components
+scripts/    ads/purchases, touch input, utilities
 debug/      debug panel (excluded from release builds)
-locale/     translation file
+locale/     translation csv
 assets/     fonts, sounds, images
-tests/      automated checks
+tests/      checks
 ```
 
-Detailed development rules and Android build instructions live in [`CLAUDE.md`](CLAUDE.md).
-
----
+Development rules and Android build instructions are in [CLAUDE.md](CLAUDE.md).
 
 ## License
 
-The code in this project is under the [MIT License](LICENSE). Use it, change it, sell it.
+The code is [MIT](LICENSE). Bundled assets keep their own licenses, with the original texts
+in their folders.
 
-The bundled assets keep their own licenses. All three are fine for commercial use, and the
-original license texts are included in their folders.
-
-| Asset | Source | License |
-|---|---|---|
-| Sound effect, slider grabber image | [Kenney](https://kenney.nl) | CC0 (public domain) |
-| Noto Sans KR / JP fonts | Google Fonts | OFL |
+- Sound effect and slider grabber image — [Kenney](https://kenney.nl), CC0
+- Noto Sans KR / JP — Google Fonts, OFL
