@@ -8,9 +8,15 @@ Godot 4.7.1 / GDScript로 만드는 **재사용 가능한 2D 세로 모바일 �
 | 항목 | 값 |
 |---|---|
 | Godot 실행 파일 | `/Applications/Godot_4.7.1.app/Contents/MacOS/Godot` |
-| Godot 버전 | `4.7.1.stable` (`/Applications/Godot.app`의 4.6.2와 병행 설치) |
+| Godot 버전 | `4.7.1.stable` |
 | export templates | `~/Library/Application Support/Godot/export_templates/4.7.1.stable/` |
-| Android SDK / JDK | **미설치** — Phase 7(Android export) 보류 중 |
+| JDK | `~/Library/Java/jdk-21.0.12+8/Contents/Home` (Temurin 21) |
+| Android SDK | `~/Library/Android/sdk` (build-tools 35.0.0, platform 35, platform-tools, emulator) |
+| debug keystore | `~/.android/debug.keystore` (alias `androiddebugkey` / pass `android`) |
+| 에뮬레이터 AVD | `Pixel_6_API35` (Android 15, arm64-v8a) |
+
+Homebrew 없이 사용자 디렉토리에만 설치했다 — sudo도, 대화형 프롬프트도 필요 없다.
+Godot 에디터 설정(`editor_settings-4.7.tres`)에 위 SDK/JDK/keystore 경로가 등록되어 있다.
 
 > export template 버전 문자열은 에디터 버전과 **정확히** 일치해야 한다.
 > Godot을 업그레이드하면 템플릿도 같은 버전으로 재설치할 것.
@@ -68,20 +74,52 @@ tests/      run_all.sh + test_*.gd
 build/      export 산출물 (gitignore)
 ```
 
-## Android (Phase 7 — 보류)
+## Android
 
-이 머신에 JDK/Android SDK/adb가 없어 APK export는 아직 검증되지 않았다.
-재개하려면 JDK 17–21, Android command-line tools(SDK + platform-tools + emulator),
-`~/.android/debug.keystore`가 필요하고, 에디터 설정에 다음을 지정해야 한다:
+아래 명령은 전부 실제로 실행해 검증한 것이다.
 
-- `export/android/android_sdk_path`
-- `export/android/java_sdk_path` (Homebrew openjdk는 keg-only라 자동 인식 안 됨 — 명시 필수)
-- `export/android/debug_keystore`
+```bash
+export JAVA_HOME="$HOME/Library/Java/jdk-21.0.12+8/Contents/Home"
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+ADB="$ANDROID_HOME/platform-tools/adb"
+GODOT=/Applications/Godot_4.7.1.app/Contents/MacOS/Godot
+
+# 디버그 APK export (37MB, debug keystore로 서명됨)
+"$GODOT" --headless --path . --export-debug "Android Debug" build/mobilegame-debug.apk
+
+# 에뮬레이터 부팅 → 설치 → 실행
+"$ANDROID_HOME/emulator/emulator" -avd Pixel_6_API35 -gpu host &
+"$ADB" wait-for-device
+"$ADB" install -r build/mobilegame-debug.apk
+"$ADB" shell am start -n com.jsgame.template/com.godot.game.GodotAppLauncher
+
+# 로그 확인 / 화면 캡처
+"$ADB" logcat -d | grep -i godot
+"$ADB" exec-out screencap -p > shot.png
+```
+
+런처 액티비티는 `GodotAppLauncher`다. `GodotApp`은 exported=false라 `am start`로
+직접 띄우면 Permission Denial이 난다.
+
+`monkey`로 앱을 띄우지 말 것 — 랜덤 이벤트를 주입해서 UI를 눌러버린다.
+
+### preset
 
 `gradle_build=false`로 시작한다 — 순수 템플릿은 gradle이 불필요하다.
 실제 Android 플러그인(AdMob 등)을 붙이는 시점에 gradle 빌드로 전환할 것.
 
-릴리스 keystore는 저장소에 넣지 않는다. 출시 시점에 생성:
+Release preset은 `exclude_filter="debug/*"`로 디버그 패널을 제외한다. 확인 방법:
+
+```bash
+unzip -o build/mobilegame-release.apk -d /tmp/rel && grep -rl debug_panel /tmp/rel
+# 아무것도 안 나와야 한다. 디버그 APK에는 assets/debug/debug_panel.gd.remap이 있다.
+```
+
+### 릴리스 서명
+
+릴리스 keystore는 저장소에 넣지 않는다 — `--export-release`는 지금 서명 단계에서
+의도적으로 실패한다(APK 자체는 생성됨). 출시 시점에 생성하고 에디터 설정 또는
+preset의 keystore 항목에 지정할 것:
 
 ```bash
 keytool -v -genkey -keystore release.keystore -alias <alias> \
