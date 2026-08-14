@@ -69,10 +69,32 @@ ui/         theme/, components/
 scripts/    services/, input/, utils/
 debug/      디버그 패널 (릴리스 빌드 제외)
 locale/     translations.csv (key,en,ko,ja)
-assets/     audio/, fonts/, sprites/, ui/
-tests/      run_all.sh + test_*.gd
+assets/     audio/(bus layout, sfx), fonts/(Noto KR·JP), ui/(슬라이더 그래버)
+tests/      run_all.sh + test_runner.tscn + test_*.gd
 build/      export 산출물 (gitignore)
 ```
+
+## 테스트
+
+`./tests/run_all.sh` 하나로 전부 돈다. 프레임워크는 쓰지 않는다.
+
+새 테스트를 추가하려면: `tests/test_*.gd`를 `extends RefCounted`로 만들고
+`func run(t: Node) -> void` 하나만 두고, `tests/test_runner.gd`의 `TESTS` 배열에
+preload로 등록한다. 단언은 `t.check(조건, 라벨)` / `t.eq(실제, 기대, 라벨)`.
+
+함정 세 가지 — 전부 실제로 밟은 것이다:
+
+- **`-s res://tests/x.gd` 스크립트 모드를 쓰지 마라.** 그 모드에서는 autoload가
+  인스턴스화되지 않아 `EventBus` 같은 전역 식별자가 **컴파일조차 되지 않는다**.
+  그래서 러너를 씬(`test_runner.tscn`)으로 띄운다.
+- **GDScript 컴파일 에러는 종료 코드 0으로 나온다.** `run_all.sh`가 출력에서
+  `SCRIPT ERROR|Failed to load script|Parse Error`를 함께 검사하는 이유다.
+  Godot을 직접 호출하지 말고 항상 `run_all.sh`로 돌려라.
+- **테스트에서 `Node`를 `.new()`로 만들면 `free()` 해야 한다.** RefCounted가
+  아니라서 안 하면 종료 시 ObjectDB 누수로 잡힌다.
+
+러너는 한 프레임 넘긴 뒤 시작한다 — `root`가 자식을 세팅하는 동안에는
+`add_child()`가 거부되기 때문이다.
 
 ## Android
 
@@ -107,6 +129,12 @@ GODOT=/Applications/Godot_4.7.1.app/Contents/MacOS/Godot
 
 `gradle_build=false`로 시작한다 — 순수 템플릿은 gradle이 불필요하다.
 실제 Android 플러그인(AdMob 등)을 붙이는 시점에 gradle 빌드로 전환할 것.
+
+아키텍처는 `arm64-v8a` 단독이다 — APK 크기가 절반이고 요즘 기기와 에뮬레이터를
+모두 커버한다. 32비트 기기까지 필요하면 `armeabi-v7a`를 켤 것.
+
+패키지명 `com.jsgame.template`과 `icon.svg`는 **플레이스홀더다.** 실제 게임을
+얹을 때 둘 다 바꿔라 — 패키지명은 스토어 등록 후에는 변경할 수 없다.
 
 Release preset은 `exclude_filter="debug/*"`로 디버그 패널을 제외한다. 확인 방법:
 
