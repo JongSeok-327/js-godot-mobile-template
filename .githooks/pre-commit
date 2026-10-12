@@ -1,0 +1,25 @@
+#!/bin/sh
+# 커밋되면 안 되는 비밀·로컬 값을 막는다. 검사 대상은 작업 트리가 아니라 **스테이징된 내용**이다 —
+# 로컬에서 Team ID 를 채워 둔 채로도, 빈 값으로 스테이징한 export_presets.cfg 는 통과해야 한다.
+# 켜기(클론마다 1회): git config core.hooksPath .githooks
+
+fail=0
+
+# 1) export_presets.cfg 의 Team ID — 로컬에서만 채우고 커밋은 빈 값이다.
+if git diff --cached --name-only | grep -qx 'export_presets.cfg' &&
+   git show :export_presets.cfg | grep -qE '^application/app_store_team_id="[^"]+"'; then
+  echo "pre-commit: export_presets.cfg 에 app_store_team_id 가 채워진 채 스테이징됐다 (빈 값으로 커밋해야 한다)." >&2
+  fail=1
+fi
+
+# 2) 실제 키·광고 단위 cfg, 서명 키 — config/ 에는 .example 만 커밋한다.
+bad=$(git diff --cached --name-only --diff-filter=ACMR |
+  grep -E '^config/[^/]+\.cfg$|\.(keystore|jks|p12|p8|mobileprovision)$')
+if [ -n "$bad" ]; then
+  echo "pre-commit: 커밋 금지 파일이 스테이징됐다:" >&2
+  echo "$bad" | sed 's/^/  /' >&2
+  fail=1
+fi
+
+[ "$fail" -eq 0 ] || echo "의도한 것이면 git restore --staged <파일> 로 빼고 다시 커밋하라." >&2
+exit "$fail"

@@ -17,3 +17,18 @@ export_presets.cfg.local
 
 # Claude Code 머신 로컬 설정 (권한 허용 목록 등)
 .claude/settings.local.json
+
+# 실제 키·광고 단위 (config/*.cfg.example 만 커밋)
+config/*.cfg
+
+# 서명 키·인증서·App Store Connect API 키 (절대 커밋 금지)
+*.keystore
+*.jks
+*.p12
+*.p8
+*.mobileprovision
+
+# 하네스·루프 작업 공간과 ralph-loop 상태 파일 (로컬 전용)
+_workspace/
+_workspace_*/
+.claude/*.local.md

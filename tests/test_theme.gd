@@ -46,3 +46,30 @@ func run(t: Node) -> void:
 	var normal := theme.get_stylebox("normal", "Button")
 	var min_height := normal.content_margin_top + normal.content_margin_bottom
 	t.check(min_height >= 48.0, "버튼 세로 여백이 터치 타겟 확보 (%.0fpx)" % min_height)
+
+	# 씬이 theme_type_variation 으로 이름만 적어 쓰는 스타일. 이름이 틀리거나 테마에서
+	# 빠지면 에러 없이 기본 모양으로 그려진다 — 화면을 열어 봐야만 알 수 있으므로 여기서 막는다.
+	for variation in _used_variations(["res://scenes", "res://ui"]):
+		t.check(theme.get_type_variation_base(variation) != &"",
+			"씬에서 쓰는 변형 %s 가 테마에 있다" % variation)
+
+
+func _used_variations(dirs: Array) -> PackedStringArray:
+	var found := PackedStringArray()
+	var regex := RegEx.create_from_string('theme_type_variation = &"([^"]+)"')
+	for path in _scene_files(dirs):
+		for m in regex.search_all(FileAccess.get_file_as_string(path)):
+			if not found.has(m.get_string(1)):
+				found.append(m.get_string(1))
+	return found
+
+
+func _scene_files(dirs: Array) -> PackedStringArray:
+	var files := PackedStringArray()
+	for dir in dirs:
+		for name in DirAccess.get_files_at(dir):
+			if name.ends_with(".tscn"):
+				files.append(dir.path_join(name))
+		for sub in DirAccess.get_directories_at(dir):
+			files.append_array(_scene_files([dir.path_join(sub)]))
+	return files
