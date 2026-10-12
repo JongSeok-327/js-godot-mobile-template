@@ -11,19 +11,25 @@ Godot 4.7.1로 만든 2D 세로 모바일 게임 템플릿입니다. 게임 내�
 Godot에서는 autoload라고 합니다.
 
 - **SaveManager** — 진행 상황을 `user://save.json`에 저장하고 읽습니다. 나중에 저장
-  형식을 바꿔도 예전 파일을 새 형식으로 옮겨주는 장치가 들어있습니다.
-- **Settings** — 음량과 언어입니다. 세이브와 다른 파일에 넣어서, 진행 기록을 지워도
+  형식을 바꿔도 예전 파일을 새 형식으로 옮겨주는 장치가 들어있습니다. 저장은 임시
+  파일에 다 쓴 뒤 바꿔 끼우는 방식이라 쓰는 도중 앱이 꺼져도 파일이 깨지지 않고,
+  직전 파일을 `.bak`으로 남겨 두었다가 본 파일이 깨지면 그걸로 복구합니다.
+- **Settings** — 음량, 언어, 진동입니다. 세이브와 다른 파일에 넣어서, 진행 기록을 지워도
   설정은 남습니다.
 - **AudioManager** — 배경음악은 겹치면서 바뀌고 효과음은 8개까지 동시에 납니다.
-  일시정지 중에도 소리는 계속 나옵니다.
+  일시정지 중에도 소리는 계속 나옵니다. 광고가 화면을 덮는 동안에는 배경음악을
+  멈춥니다. iOS는 광고가 떠도 앱이 멈추지 않아서 따로 멈춰야 합니다.
 - **SceneManager** — 화면 전환입니다. 어두워졌다 밝아집니다. 파일 경로 대신
   `"main_menu"` 같은 이름으로 부릅니다.
 - **Services** — 광고와 결제가 들어갈 자리입니다. 기본으로는 아무것도 안 하고
   성공했다고만 답하는 가짜가 끼워져 있습니다. 덕분에 구글 SDK를 붙이기 전에도 보상
   지급까지 눌러볼 수 있고, 나중에 진짜를 붙일 때 게임 쪽 코드는 안 고쳐도 됩니다.
+  진짜 광고 SDK를 붙일 때 지켜야 할 약속(못 띄워도 결과는 반드시 돌려준다 등)은
+  `scripts/services/ad_service.gd`에 적어 두었습니다.
 - **EventBus** — 부품끼리 주고받는 신호 모음입니다. 여기엔 로직을 두지 않습니다.
 - **DebugTools** — 왼쪽 아래 `DBG` 버튼입니다. 프레임 수, 화면 점프, 언어 순환,
-  세이브 삭제를 할 수 있습니다. 출시용으로 빌드하면 통째로 빠집니다.
+  세이브 삭제를 할 수 있습니다. 버튼이 많아지면 패널 안에서 스크롤됩니다. 출시용으로
+  빌드하면 통째로 빠집니다.
 
 화면은 boot → main_menu → game 순으로 이어지고, 그 위에 일시정지·설정·게임오버가
 겹쳐 뜹니다.
@@ -32,12 +38,31 @@ Godot에서는 autoload라고 합니다.
 
 - TouchController — 탭, 롱프레스, 드래그, 스와이프를 구분해서 알려줍니다
 - ObjectPool — 총알처럼 계속 생겼다 없어지는 것을 버리지 않고 재사용합니다
-- 번역 ko / en / ja. 설정에서 바꾸면 껐다 켤 필요 없이 그 자리에서 바뀝니다
+- 번역 ko / en / ja. 설정에서 바꾸면 껐다 켤 필요 없이 그 자리에서 바뀝니다. 빈 칸이나
+  CSV에 없는 키는 테스트에서 걸립니다
 - Noto Sans KR/JP 폰트가 들어있습니다. 시스템 폰트에 맡기면 기기마다 글자 모양이
   달라집니다
 - 안드로이드 뒤로가기는 게임에서 일시정지, 메뉴에서 종료로 동작합니다
 - 홈으로 나가면 자동 저장합니다. 안드로이드는 백그라운드에 있는 앱을 마음대로
   꺼버리기 때문입니다
+- export preset은 Android 디버그·릴리스, iOS 릴리스·디버그 네 개입니다. iOS에서는
+  메인 메뉴의 종료 버튼을 숨깁니다. 스스로 꺼지는 앱은 App Store 심사에서 반려됩니다
+
+## 도구
+
+- `tools/verify.sh` — 스모크 테스트, 전체 스크립트 파스, 화면별 스모크, 단위 테스트,
+  메모리 누수 기준을 한 번에 보고 마지막 줄에 `VERDICT: PASS` 또는 `FAIL`을 찍습니다. GDScript 에러는
+  종료 코드가 0으로 나와서 출력을 직접 봐야 하는데, 그걸 대신 해 줍니다.
+- `tools/device.sh` — Android 기기·에뮬레이터나 iPhone 실기기에 빌드해서 설치하고
+  실행합니다. 화면 캡처, 로그, 앱 데이터 가져오기도 됩니다.
+- `debug/layout_shots.tscn` — iPhone과 Android의 여러 화면비로 각 화면을 찍습니다.
+  Apple Silicon Mac에서는 Godot iOS 시뮬레이터 빌드가 안 돼서 이걸로 대신 봅니다.
+- `.githooks/pre-commit` — 서명 키, 실제 광고 키가 든 `config/*.cfg`, Team ID를 채운
+  preset이 커밋되지 않게 막습니다.
+- `.claude/` — Claude Code용 스킬과 에이전트입니다. 수정 → 검증 → 기기 확인 → 출시
+  점검 순서를 고정해 둔 것으로, 자세한 내용은 [CLAUDE.md](CLAUDE.md)에 있습니다. 일부는
+  [Claude-Code-Game-Studios](https://github.com/Donchitos/Claude-Code-Game-Studios)에서
+  가져와 고쳤습니다.
 
 ## 없는 것
 
@@ -52,6 +77,7 @@ git clone https://github.com/JongSeok-327/js-godot-mobile-template.git
 cd js-godot-mobile-template
 
 godot --headless --path . --import   # 처음 한 번
+git config core.hooksPath .githooks  # 처음 한 번, 커밋 검사 훅 켜기
 godot --path .
 ```
 
@@ -65,8 +91,11 @@ godot --path .
   코드 곳곳에 직접 쓰면 나중에 파일 하나 옮길 때 전부 찾아 고쳐야 합니다.
 - 글자는 `locale/translations.csv`에 한 줄 추가합니다. 세 언어가 같은 줄에 들어갑니다.
 - 색과 모서리는 `ui/theme/default_theme.tres` 한 곳만 고치면 전체가 따라옵니다.
-- 출시 전에 앱 ID(`com.jsgame.template`)와 `icon.svg`를 바꿉니다. 앱 ID는 스토어에
-  한 번 올리면 못 바꿉니다.
+- 출시 전에 앱 ID(`com.jsgame.template`, Android와 iOS preset 모두)와 `icon.svg`를
+  바꿉니다. 앱 ID는 스토어에 한 번 올리면 못 바꿉니다.
+- 광고 키 같은 실제 값은 `config/*.cfg`에 둡니다. 저장소에는 `.example`만 올리고,
+  export preset의 `include_filter`에 `config/*.cfg`를 넣어야 앱에 들어갑니다.
+- iOS Team ID는 내 컴퓨터의 preset에만 넣고 커밋할 때는 비워 둡니다.
 
 ## 폴더
 
@@ -79,9 +108,12 @@ debug/      디버그 패널 (출시 빌드에서 제외)
 locale/     번역 csv
 assets/     폰트, 소리, 이미지
 tests/      검사
+tools/      검증, 기기 설치 스크립트
+.githooks/  커밋 검사
+.claude/    Claude Code 스킬·에이전트
 ```
 
-개발 규칙과 안드로이드 빌드 방법은 [CLAUDE.md](CLAUDE.md)에 있습니다.
+개발 규칙과 Android·iOS 빌드 방법은 [CLAUDE.md](CLAUDE.md)에 있습니다.
 
 ## 라이선스
 
