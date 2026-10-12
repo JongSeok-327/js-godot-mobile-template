@@ -19,6 +19,9 @@ func _test_locator_defaults(t: Node) -> void:
 	t.check(Services.ads is NullAdService, "Services.ads 기본값은 NullAdService")
 	t.check(Services.iap is NullIAPService, "Services.iap 기본값은 NullIAPService")
 	t.check(Services.ads.is_rewarded_ready(), "Null 광고는 항상 준비 상태")
+	t.check(Services.ads.is_interstitial_ready(), "Null 전면 광고도 항상 준비 상태")
+	t.check(Services.ads.fullscreen_changed.is_connected(AudioManager.set_music_paused),
+		"Services 가 광고 전면 표시를 음악 일시정지에 연결해 둔다")
 
 
 ## 실제 게임이 쓰는 경로 그대로 — Services.ads로 요청하고 보상을 지급한다.

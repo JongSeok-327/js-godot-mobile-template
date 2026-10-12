@@ -22,6 +22,7 @@ func run(t: Node) -> void:
 	_test_locale_validation(t)
 	_test_locale_signal(t)
 	_test_applies_to_audio_server(t, master_index)
+	_test_haptics(t)
 	_cleanup()
 
 	AudioServer.set_bus_volume_db(master_index, saved_master_db)
@@ -114,4 +115,14 @@ func _test_applies_to_audio_server(t: Node, master_index: int) -> void:
 	)
 	settings.set_volume("master", 0.0)
 	t.check(AudioServer.is_bus_mute(master_index), "볼륨 0이면 버스 mute")
+	_cleanup()
+
+
+func _test_haptics(t: Node) -> void:
+	var settings := _make()
+	t.check(settings.haptics_enabled(), "진동은 기본 켜짐")
+	settings.set_haptics(false)
+	var loaded := _make()
+	loaded.load_settings()
+	t.check(not loaded.haptics_enabled(), "진동 꺼짐이 저장·복원된다")
 	_cleanup()

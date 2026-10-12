@@ -18,6 +18,7 @@ const TESTS: Array[Script] = [
 	preload("res://tests/test_object_pool.gd"),
 	preload("res://tests/test_services.gd"),
 	preload("res://tests/test_debug_tools.gd"),
+	preload("res://tests/test_locale_refresh.gd"),
 ]
 
 var _passed := 0

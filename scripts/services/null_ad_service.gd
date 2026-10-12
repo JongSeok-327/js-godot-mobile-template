@@ -24,6 +24,10 @@ func show_rewarded(placement: String) -> void:
 	rewarded_completed.emit.call_deferred(placement, true)
 
 
+func is_interstitial_ready() -> bool:
+	return true
+
+
 func show_interstitial(placement: String) -> void:
 	print("[ads] 전면 광고 요청(%s) — 즉시 닫힘 처리" % placement)
 	interstitial_closed.emit.call_deferred(placement)

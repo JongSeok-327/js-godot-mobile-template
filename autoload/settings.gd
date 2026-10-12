@@ -7,6 +7,7 @@ extends Node
 const DEFAULT_CONFIG_PATH := "user://settings.cfg"
 const SECTION_AUDIO := "audio"
 const SECTION_LOCALE := "locale"
+const SECTION_HAPTICS := "haptics"
 
 const DEFAULT_LOCALE := "en"
 const SUPPORTED_LOCALES: Array[String] = ["en", "ko", "ja"]
@@ -23,6 +24,9 @@ var config_path := DEFAULT_CONFIG_PATH
 
 var _volumes := {"master": 1.0, "music": 0.8, "sfx": 1.0}
 var _locale := DEFAULT_LOCALE
+## 진동. **기본 켜짐** — 게임필의 일부라 처음부터 느껴져야 하고,
+## 거슬리는 사람만 끄면 된다.
+var _haptics := true
 
 
 func _ready() -> void:
@@ -42,6 +46,29 @@ func set_volume(key: String, value: float) -> void:
 	_volumes[key] = clampf(value, 0.0, 1.0)
 	_apply_volume(key)
 	save_settings()
+
+
+func haptics_enabled() -> bool:
+	return _haptics
+
+
+func set_haptics(enabled: bool) -> void:
+	if _haptics == enabled:
+		return
+	_haptics = enabled
+	save_settings()
+
+
+## 짧은 진동. 설정이 꺼져 있거나 진동이 없는 플랫폼(에디터·데스크톱)에서는
+## 아무 일도 하지 않는다.
+##
+## `Input.vibrate_handheld` 는 Android/iOS 에서만 동작하고 다른 플랫폼에서는
+## 조용히 무시된다. 그래도 설정 검사는 여기서 한 번에 해두는 편이 낫다 —
+## 호출하는 쪽마다 조건을 적으면 언젠가 한 곳이 빠진다.
+func vibrate(duration_ms := 40, amplitude := -1.0) -> void:
+	if not _haptics:
+		return
+	Input.vibrate_handheld(duration_ms, amplitude)
 
 
 func get_locale() -> String:
@@ -80,6 +107,8 @@ func load_settings() -> bool:
 	var loaded_locale := str(config.get_value(SECTION_LOCALE, "current", _locale))
 	if loaded_locale in SUPPORTED_LOCALES:
 		_locale = loaded_locale
+
+	_haptics = bool(config.get_value(SECTION_HAPTICS, "enabled", _haptics))
 	return true
 
 
@@ -88,6 +117,7 @@ func save_settings() -> bool:
 	for key in VOLUME_BUSES:
 		config.set_value(SECTION_AUDIO, key, _volumes[key])
 	config.set_value(SECTION_LOCALE, "current", _locale)
+	config.set_value(SECTION_HAPTICS, "enabled", _haptics)
 
 	var err := config.save(config_path)
 	if err != OK:

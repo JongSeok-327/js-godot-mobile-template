@@ -13,8 +13,12 @@ const MEGABYTE := 1048576.0
 
 @onready var _body: PanelContainer = %Body
 @onready var _stats: Label = %Stats
-@onready var _scene_buttons: HBoxContainer = %SceneButtons
-@onready var _cheat_buttons: VBoxContainer = %CheatButtons
+## 씬이 늘면 한 줄에 다 안 들어간다 — HFlowContainer 라 다음 줄로 넘어간다.
+@onready var _scene_buttons: HFlowContainer = %SceneButtons
+## 치트도 여러 열로 — 한 줄에 하나씩 쌓으면 화면 위로 넘쳐 잘렸다(iPhone).
+@onready var _cheat_buttons: HFlowContainer = %CheatButtons
+@onready var _scroll: ScrollContainer = %Scroll
+@onready var _rows: VBoxContainer = %Rows
 @onready var _locale_button: Button = %LocaleButton
 
 var _elapsed := 0.0
@@ -58,6 +62,14 @@ func _on_toggle_pressed() -> void:
 	set_process(_body.visible)
 	if _body.visible:
 		_update_stats()
+		_fit_height()
+
+
+## 패널은 아래에서 위로 자란다. 화면 높이의 65% 를 넘으면 그 안에서 스크롤한다 —
+## 안 그러면 위쪽 버튼이 화면(노치) 밖으로 나가 누를 수 없다.
+func _fit_height() -> void:
+	var limit := get_viewport().get_visible_rect().size.y * 0.65
+	_scroll.custom_minimum_size.y = minf(_rows.get_combined_minimum_size().y, limit)
 
 
 func _on_wipe_pressed() -> void:
@@ -79,6 +91,8 @@ func _on_language_changed(_locale: String) -> void:
 func _add_cheat_button(label: String, callback: Callable) -> void:
 	var button := Button.new()
 	button.text = label
+	# 버튼 위에서 끌어도 목록이 스크롤되게 — 디버그 패널이라 끌다 놓았을 때 눌리는 건 감수한다.
+	button.mouse_filter = Control.MOUSE_FILTER_PASS
 	button.pressed.connect(callback)
 	_cheat_buttons.add_child(button)
 

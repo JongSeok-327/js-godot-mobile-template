@@ -63,5 +63,24 @@ func _test_pool(t: Node) -> void:
 		"일시정지 중에도 동작 (PROCESS_MODE_ALWAYS)"
 	)
 
+	# 광고가 화면을 덮는 동안 곡 위치를 유지한 채 멈춘다. 재생 중인 곡이 없어도 상태는 기억한다.
+	manager.set_music_paused(true)
+	t.check(manager.is_music_paused(), "set_music_paused(true) 면 음악이 멈춘다")
+	manager.set_music_paused(false)
+	t.check(not manager.is_music_paused(), "set_music_paused(false) 면 다시 흐른다")
+
+	# 슬롯을 돌려 쓰므로 음높이가 다음 소리에 남으면 안 된다.
+	var stream := AudioStreamWAV.new()
+	for i in AudioManagerScript.SFX_POOL_SIZE:
+		manager.play_sfx(stream, 1.5)
+	manager.play_sfx(stream)
+	var leaked := 0
+	for child in manager.get_children():
+		var player := child as AudioStreamPlayer
+		if player.bus == AudioManagerScript.SFX_BUS and player.pitch_scale != 1.5:
+			leaked += 1
+	t.eq(leaked, 1, "pitch 를 안 주면 1.0 으로 되돌린다 — 앞 소리의 음높이가 남지 않는다")
+	manager.stop_all_sfx()
+
 	t.get_tree().root.remove_child(manager)
 	manager.free()

@@ -19,6 +19,7 @@ var _active_music := 0
 var _sfx_players: Array[AudioStreamPlayer] = []
 var _next_sfx := 0
 var _fade_tween: Tween
+var _music_paused := false
 
 
 func _ready() -> void:
@@ -77,8 +78,22 @@ func is_music_playing() -> bool:
 	return _music_players[_active_music].playing
 
 
+## 곡 위치를 유지한 채 멈추고 이어 튼다 (광고가 화면을 덮는 동안 등).
+## 두 재생기를 다 멈춘다 — 크로스페이드 도중이면 나가는 곡도 소리를 내고 있다.
+func set_music_paused(paused: bool) -> void:
+	_music_paused = paused
+	for player in _music_players:
+		player.stream_paused = paused
+
+
+## 재생기의 `stream_paused` 는 재생 중인 곡이 없으면 false 를 돌려주므로 따로 기억한다.
+func is_music_paused() -> bool:
+	return _music_paused
+
+
 ## 비어있는 슬롯을 우선 쓰고, 전부 차 있으면 가장 오래된 슬롯을 뺏는다.
-func play_sfx(stream: AudioStream) -> void:
+## `pitch` 는 연속 동작(아이템 연속 줍기 등)에 음을 조금씩 올릴 때 쓴다.
+func play_sfx(stream: AudioStream, pitch: float = 1.0) -> void:
 	if stream == null:
 		return
 
@@ -87,10 +102,10 @@ func play_sfx(stream: AudioStream) -> void:
 		var index := (_next_sfx + offset) % count
 		var player := _sfx_players[index]
 		if not player.playing:
-			_play_on(player, stream, index)
+			_play_on(player, stream, index, pitch)
 			return
 
-	_play_on(_sfx_players[_next_sfx], stream, _next_sfx)
+	_play_on(_sfx_players[_next_sfx], stream, _next_sfx, pitch)
 
 
 func stop_all_sfx() -> void:
@@ -105,9 +120,11 @@ func _add_player(bus: StringName) -> AudioStreamPlayer:
 	return player
 
 
-func _play_on(player: AudioStreamPlayer, stream: AudioStream, index: int) -> void:
+func _play_on(player: AudioStreamPlayer, stream: AudioStream, index: int, pitch: float = 1.0) -> void:
 	_next_sfx = (index + 1) % _sfx_players.size()
 	player.stream = stream
+	# 슬롯은 돌려 쓰므로 매번 되돌린다 — 안 그러면 앞의 음높이가 다음 소리에 남는다.
+	player.pitch_scale = pitch
 	player.play()
 
 

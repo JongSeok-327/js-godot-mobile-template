@@ -12,6 +12,9 @@ SETTINGS_MASTER,Master,전체,全体
 SETTINGS_MUSIC,Music,음악,音楽
 SETTINGS_SFX,SFX,효과음,効果音
 SETTINGS_LANGUAGE,Language,언어,言語
+SETTINGS_HAPTICS,Vibration,진동,バイブ
+SETTINGS_ON,On,켜짐,オン
+SETTINGS_OFF,Off,꺼짐,オフ
 SETTINGS_CLOSE,Close,닫기,閉じる
 GAME_OVER_TITLE,Game Over,게임 오버,ゲームオーバー
 GAME_OVER_RETRY,Retry,다시 하기,リトライ

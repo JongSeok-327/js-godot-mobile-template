@@ -17,6 +17,9 @@ func _ready() -> void:
 	_play_button.pressed.connect(_on_play_pressed)
 	_settings_button.pressed.connect(_on_settings_pressed)
 	_quit_button.pressed.connect(_on_quit_pressed)
+	# iOS 에는 "앱 종료" 개념이 없다 — 홈으로 나가는 것이 종료다. 스스로 꺼지는
+	# 앱은 App Store 심사 반려 사유다.
+	_quit_button.visible = OS.get_name() != "iOS"
 	_play_button.grab_focus()
 
 

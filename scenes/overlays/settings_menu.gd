@@ -37,6 +37,16 @@ func _ready() -> void:
 		var button := get_node("%%%s" % node_name) as Button
 		button.pressed.connect(func() -> void: Settings.set_locale(locale))
 
+	var haptics: Button = %HapticsButton
+	haptics.button_pressed = Settings.haptics_enabled()
+	_update_haptics_label()
+	haptics.toggled.connect(func(on: bool) -> void:
+		Settings.set_haptics(on)
+		_update_haptics_label()
+		# 켠 순간 한 번 울려준다 — 껐다 켰는데 아무 반응이 없으면 됐는지 알 수 없다.
+		if on:
+			Settings.vibrate())
+
 	%CloseButton.pressed.connect(closed.emit)
 	EventBus.language_changed.connect(_on_language_changed)
 	_update_language_buttons()
@@ -48,6 +58,10 @@ func _notification(what: int) -> void:
 	# (아래 씬들은 _settings_menu가 살아있는 동안 뒤로가기를 무시한다.)
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 		closed.emit()
+	# 진동 켜짐/꺼짐은 코드가 tr() 결과를 넣는다 — 번역 키가 아니라서 언어가 바뀌어도
+	# Godot 이 다시 번역하지 않는다. 직접 다시 쓴다.
+	if what == NOTIFICATION_TRANSLATION_CHANGED and is_node_ready():
+		_update_haptics_label()
 
 
 func _on_language_changed(_locale: String) -> void:
@@ -60,3 +74,9 @@ func _update_language_buttons() -> void:
 	for node_name in LANGUAGE_BUTTONS:
 		var button := get_node("%%%s" % node_name) as Button
 		button.disabled = LANGUAGE_BUTTONS[node_name] == current
+
+
+## 켜짐/꺼짐을 버튼 글자로 보여준다. 토글 버튼은 눌린 상태가 테마 색으로만
+## 구분돼서, 색만으로는 어느 쪽이 켜진 건지 알기 어렵다.
+func _update_haptics_label() -> void:
+	%HapticsButton.text = tr("SETTINGS_ON") if Settings.haptics_enabled() else tr("SETTINGS_OFF")
