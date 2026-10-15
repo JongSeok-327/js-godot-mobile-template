@@ -5,6 +5,7 @@
 #   shot <파일>     Android 화면 캡처 (PNG)
 #   ios             iPhone 실기기: "iOS Debug" export → xcodebuild → 설치 → 실행
 #   ios-release     iPhone 실기기: 출시용 "iOS" preset → Release 빌드(개발 인증서로 서명) → 설치
+#   ios-archive     App Store 제출용: "iOS" preset → archive → Xcode Organizer 로 연다 (업로드는 Organizer 에서)
 #   ios-shot <파일> iPhone 화면 캡처
 #   ios-pull <앱 경로> <파일>  앱 데이터에서 파일 가져오기 (user:// = Documents/)
 #
@@ -69,6 +70,21 @@ case "${1:-}" in
   shot)
     [ -n "${2:-}" ] || { echo "사용: shot <파일.png>"; exit 1; }
     "$ADB" exec-out screencap -p > "$2" && echo "$2"
+    ;;
+  ios-archive)
+    grep -q 'app_store_team_id=""' export_presets.cfg && { echo "iOS preset 에 Team ID 가 비어 있다 — 로컬에만 넣는다(커밋 금지)"; exit 1; }
+    mkdir -p build/ios
+    "$GODOT" --headless --path . --export-release "iOS" "build/ios/$APP.xcodeproj" 2>&1 | grep -E "ERROR|SCRIPT" | head -5
+    # 자동 서명은 archive 단계에서 개발 인증서만 받아 준다 — 배포 서명은 업로드(Organizer)가 다시 한다.
+    rm -rf "build/ios/$APP.xcarchive"
+    xcodebuild -project "build/ios/$APP.xcodeproj" -scheme "$APP" -configuration Release -derivedDataPath build/ios_arc_dd \
+      -destination 'generic/platform=iOS' -archivePath "build/ios/$APP.xcarchive" -allowProvisioningUpdates \
+      CODE_SIGN_IDENTITY="Apple Development" archive 2>&1 | grep -E "error:|ARCHIVE (SUCCEEDED|FAILED)" | sort -u | tail -3 \
+      | tee /dev/stderr | grep -q SUCCEEDED || { echo "archive 실패"; exit 1; }
+    # 명령줄 업로드(-exportArchive)는 Xcode 27 에서 계정을 못 봐 "Failed to Use Accounts" 로 깨졌다(kongslash) —
+    # Organizer 에서 Distribute App → App Store Connect 로 올린다.
+    open "build/ios/$APP.xcarchive"
+    echo "Organizer 에서 Distribute App → App Store Connect"
     ;;
   ios|ios-release|ios-shot|ios-pull)
     # 연결된 실기기 하나. 'available (paired)' 상태도 잡는다. 잠겨 있으면 실행만 실패한다(설치는 된다).

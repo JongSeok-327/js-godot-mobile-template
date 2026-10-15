@@ -75,6 +75,9 @@ git config core.hooksPath .githooks
 "$GODOT" --path . res://debug/layout_shots.tscn -- --out=/절대/경로
 ```
 
+> **커밋 전에는 `verify.sh` 의 마지막 줄을 문자열로 비교한다** — `r=$(tools/verify.sh | tail -1); [ "$r" = "VERDICT: PASS" ] && git commit ...`.
+> `set -e` 나 `&&` 로 이어 두면 파이프 끝(`tail`)의 종료 코드만 보여서 FAIL 인데 커밋된 적이 있다(kongslash).
+
 > **스모크는 종료 코드만 보면 안 된다** — GDScript 에러는 exit 0 으로 나온다.
 > 출력에서 `SCRIPT ERROR|Parse Error|Failed to load` 를 봐야 한다. `verify.sh` 가 그걸 한다.
 > 또 스모크는 autoload·씬이 **참조하는** 스크립트만 컴파일한다. 아직 안 붙인 스크립트나
@@ -124,6 +127,9 @@ git config core.hooksPath .githooks
 - **물리 콜백(`area_entered` 등) 안에서 트리 조작·`monitoring` 변경·free 금지** →
   `call_deferred` / `set_deferred`. 풀에 반납할 때는 `set_deferred("monitorable", false)`.
 - 진동은 `Settings.vibrate()` 로만 낸다 — 설정 검사가 한 곳에 있다. 데스크톱에서는 아무 일도 안 한다.
+- **첫 판의 첫 타격이 끊긴다** (kongslash iPhone 실측 85ms) — 그 순간 처음 쓰는 것(효과음 디코더·햅틱 엔진·새 글자 크기의
+  글리프·이펙트 셰이더)이 한꺼번에 준비된다. 판 시작 때 무음 재생·1ms 진동·투명 그리기로 한 번씩 **예열**한다.
+  데스크톱에선 안 보인다 — 기기에서 `debug/perf_probe.gd`(40ms 넘는 프레임 + 직전 `mark()`)를 붙여 `ios-pull` 로 가져와 잰다.
 
 ## 서비스 교체 지점
 
@@ -165,7 +171,8 @@ autoload/   EventBus, SaveManager, Settings, AudioManager, SceneManager, Service
 scenes/     boot/, main_menu/, game/, overlays/
 ui/         theme/, components/
 scripts/    services/, input/, utils/
-debug/      디버그 패널, 화면비 촬영 도구 (릴리스 빌드 제외)
+debug/      디버그 패널, 화면비 촬영 도구, 프레임 끊김 기록(perf_probe) (릴리스 빌드 제외)
+docs/store/ 스토어 등록 문구·개인정보·연령 등급 응답표 골격 (게임을 얹으면 채운다)
 locale/     translations.csv (key,en,ko,ja)
 assets/     audio/(bus layout, sfx), fonts/(Noto KR·JP), ui/(슬라이더 그래버), icon/(빈 스플래시)
 tests/      run_all.sh + test_runner.tscn + test_*.gd
@@ -213,6 +220,7 @@ tools/device.sh ios            # "iOS Debug" export → xcodebuild → 설치 �
 tools/device.sh ios-release    # 출시 preset 으로 Release 빌드 → 설치 (디버그 패널 없음 확인)
 tools/device.sh ios-shot x.png
 tools/device.sh ios-pull Documents/save.json x.json   # user:// = Documents/
+tools/device.sh ios-archive    # App Store 제출용 archive → Organizer 를 연다 (Distribute App → App Store Connect)
 ```
 
 - **preset 이 둘이다: `iOS`(릴리스, `debug/*` 제외)와 `iOS Debug`(디버그 패널 포함).** 하나로
@@ -243,6 +251,25 @@ tools/device.sh ios-pull Documents/save.json x.json   # user:// = Documents/
   `ios-pull` 로 가져온다.
 - 맞춤 광고용 추적 허용(ATT) 팝업을 넣으면 `NSUserTrackingUsageDescription` 문구와 요청 코드를 **함께**
   넣는다 (요청만 하고 문구가 없으면 크래시, 문구만 있으면 심사 질문).
+
+### 업로드·심사 제출 (kongkong·kongslash 에서 밟은 것)
+
+- **archive 는 `Apple Development` 로 서명한다** — 자동 서명 + 출시 preset 의 `Apple Distribution` 이 겹치면
+  "conflicting provisioning settings" 로 실패한다. 배포 서명은 업로드 단계가 다시 한다. `device.sh ios-archive` 가 그렇게 한다.
+- **업로드는 Organizer(Distribute App)로.** Xcode 27 에서 `xcodebuild -exportArchive`(destination upload)가 설정의
+  Apple Accounts 에 계정이 있어도 "Failed to Use Accounts / No Accounts" 로 깨졌다(kongslash, kongkong 때는 됐다).
+  사람 없이 올리려면 App Store Connect API 키(`.p8`, gitignore 됨)로 `-authenticationKeyPath/-KeyID/-KeyIssuerID` 를 쓴다.
+- 업로드 뒤 "Upload Symbols Failed … GoogleMobileAds/UserMessagingPlatform dSYM" 경고는 **무해**하다(SDK 가 dSYM 없이 온다).
+- `ITSAppUsesNonExemptEncryption=false` 는 Godot 템플릿 Info.plist 에 이미 있다 — 수출 규정 질문이 안 나온다.
+- **App Store Connect 의 버전 문자열 = preset `short_version`** (예: 1.0.0). 새 앱의 기본값 "1.0" 그대로 두면 빌드가 안 붙는다.
+- 스크린샷은 6.3인치 칸(1206×2622) 한 벌이면 된다 — 화면 밖 `SubViewport`(size 1206×2622, `size_2d_override` 로 720 폭)에
+  장면을 띄워 찍는다(창으로 열면 화면 높이에 잘린다). 언어마다 따로 올린다.
+  **올린 뒤 안내 창("앱 미리보기, 스크린샷 및 현지화")을 승인하지 않으면 일부가 구름 아이콘(처리 중)에서 멈추고**,
+  "심사에 추가" 가 "1개 이상의 스크린샷 업로드가 완료되어야" 로 막힌다 — 언어별로 눈으로 확인하고, 멈춘 것은 지우고 다시 올린다.
+  "헤더 및 검색 결과" 탭(5244×2950)에 떨어뜨리면 크기 오류로 거부된다 — "앱 미리보기 및 스크린샷" 탭을 먼저 연다.
+- 게임 하위 카테고리에 "아케이드" 가 없다 (액션·캐주얼 등). 중국 본토는 게임 판호 없이는 못 내니 출시 지역에서 뺀다.
+- 연령 등급 설문(7단계): 만화 폭력 "드문" → 9+. 닉네임이 남에게 보이면 "사용자 생성 콘텐츠" 예, 광고 SDK 면 "광고" 예.
+  응답표·개인정보 라벨 초안은 `docs/store/` 에 둔다.
 
 ## Android
 

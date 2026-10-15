@@ -32,3 +32,7 @@ config/*.cfg
 _workspace/
 _workspace_*/
 .claude/*.local.md
+
+# 다른 AI 도구의 로컬 설정 (Codex 등)
+.agents/
+.codex/
